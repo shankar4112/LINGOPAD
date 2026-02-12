@@ -6,19 +6,37 @@
   "type": "module",
   "scripts": {
     "start": "node server.js",
-    "dev": "nodemon server.js"
+    "start:mvc": "node server-mvc.js",
+    "dev": "nodemon server.js",
+    "dev:mvc": "nodemon server-mvc.js",
+    "setup": "node setup.js"
   },
   "dependencies": {
-    "express": "^4.18.2",
+    "@aws-sdk/client-translate": "^3.742.0",
+    "@huggingface/inference": "^4.6.1",
+    "@xenova/transformers": "^2.17.2",
     "cors": "^2.8.5",
-    "dotenv": "^16.3.1",
+    "dotenv": "^16.6.1",
+    "express": "^4.18.2",
+    "express-rate-limit": "^8.0.1",
     "helmet": "^7.0.0",
-    "morgan": "^1.10.0"
+    "morgan": "^1.10.0",
+    "nodemailer": "^7.0.5",
+    "pg": "^8.18.0",
+    "pg-hstore": "^2.3.4",
+    "sequelize": "^6.37.7",
+    "sqlite3": "^5.1.7",
+    "transliteration": "^2.3.5"
   },
   "devDependencies": {
     "nodemon": "^3.0.1"
   },
-  "keywords": ["language", "learning", "translation", "api"],
+  "keywords": [
+    "language",
+    "learning",
+    "translation",
+    "api"
+  ],
   "author": "LingoPad Team",
   "license": "MIT"
 }

@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Translation Test - Tomato Example</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .test-container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 30px;
+            border-radius: 20px;
+            margin: 20px 0;
+        }
+        .input-section {
+            margin-bottom: 30px;
+        }
+        input, select, button {
+            padding: 10px;
+            margin: 5px;
+            border-radius: 10px;
+            border: none;
+            font-size: 16px;
+        }
+        button {
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        button:hover {
+            background: linear-gradient(45deg, #45a049, #4CAF50);
+            transform: translateY(-2px);
+        }
+        .result {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 20px;
+            border-radius: 15px;
+            margin: 10px 0;
+        }
+        .pronunciation {
+            color: #90EE90;
+            font-style: italic;
+            margin: 10px 0;
+        }
+        .speak-btn {
+            background: linear-gradient(45deg, #FF6B6B, #4ECDC4);
+            font-size: 14px;
+            padding: 8px 16px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🍅 Translation Test: Proper Fruit & Vegetable Names</h1>
+    
+    <div class="test-container">
+        <h2>Test the Fixed Translation System</h2>
+        <div class="input-section">
+            <input type="text" id="testInput" placeholder="Enter word (try: tomato, apple, potato)" value="tomato">
+            <select id="testLanguage">
+                <option value="tamil">Tamil</option>
+                <option value="hindi">Hindi</option>
+                <option value="japanese">Japanese</option>
+                <option value="chinese">Chinese</option>
+                <option value="korean">Korean</option>
+            </select>
+            <button onclick="testTranslation()">🌍 Translate</button>
+        </div>
+        <div id="result" class="result" style="display: none;">
+            <div><strong>Original:</strong> <span id="original"></span></div>
+            <div><strong>Translation:</strong> <span id="translation"></span></div>
+            <div class="pronunciation"><strong>Pronunciation:</strong> <span id="pronunciation"></span></div>
+            <button class="speak-btn" onclick="speakTranslation()" id="speakBtn">🔊 Speak</button>
+        </div>
+    </div>
+
+    <div class="test-container">
+        <h2>✅ Expected Correct Translations:</h2>
+        <div class="result">
+            <strong>English "tomato" → Tamil:</strong> தக்காளி (thakkali)<br>
+            <strong>English "potato" → Tamil:</strong> உருளைக்கிழங்கு (urulaikizhangu)<br>
+            <strong>English "apple" → Hindi:</strong> सेब (seb)<br>
+            <strong>English "banana" → Japanese:</strong> バナナ (banana)<br>
+            <strong>English "mango" → Chinese:</strong> 芒果 (mangguo)
+        </div>
+    </div>
+
+    <script>
+        let currentTranslation = '';
+        let currentLanguage = '';
+
+        async function testTranslation() {
+            const input = document.getElementById('testInput').value.trim();
+            const language = document.getElementById('testLanguage').value;
+            const resultDiv = document.getElementById('result');
+            
+            if (!input) {
+                alert('Please enter a word to translate');
+                return;
+            }
+
+            try {
+                // Call our translation API
+                const response = await fetch('http://localhost:3000/get-started', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        inputText: input,
+                        targetLanguage: language,
+                        translationMethod: 'huggingface'
+                    })
+                });
+
+                const result = await response.json();
+                
+                if (result.status === 'success') {
+                    document.getElementById('original').textContent = input;
+                    document.getElementById('translation').textContent = result.data.translatedText;
+                    document.getElementById('pronunciation').textContent = result.data.pronunciation;
+                    
+                    currentTranslation = result.data.translatedText;
+                    currentLanguage = language;
+                    
+                    resultDiv.style.display = 'block';
+                    
+                    // Show success message
+                    if (input.toLowerCase() === 'tomato' && language === 'tamil' && result.data.translatedText === 'தக்காளி') {
+                        alert('🎉 Perfect! "Tomato" correctly translated to "தக்காளி" (thakkali) in Tamil!');
+                    }
+                } else {
+                    alert('Translation failed: ' + result.message);
+                }
+                
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error connecting to translation service');
+            }
+        }
+
+        async function speakTranslation() {
+            if (!currentTranslation) return;
+            
+            try {
+                const response = await fetch('http://localhost:3000/speak-pronunciation', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        text: currentTranslation,
+                        targetLanguage: currentLanguage
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.status === 'success') {
+                    const utterance = new SpeechSynthesisUtterance(result.data.speechText);
+                    utterance.rate = 0.8;
+                    speechSynthesis.speak(utterance);
+                } else {
+                    alert('Speech synthesis failed');
+                }
+                
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error with speech synthesis');
+            }
+        }
+
+        // Test on page load
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                testTranslation();
+            }, 1000);
+        });
+    </script>
+</body>
+</html>

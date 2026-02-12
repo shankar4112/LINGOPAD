@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LingoPad - Text-to-Speech Test</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 20px;
+            color: white;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+        }
+        .title {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 30px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        .test-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .language-title {
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            color: #FFD700;
+        }
+        .text-display {
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+        }
+        .pronunciation {
+            font-size: 1rem;
+            color: #B0E0E6;
+            margin-bottom: 15px;
+            font-style: italic;
+        }
+        .speak-button {
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-right: 10px;
+        }
+        .speak-button:hover {
+            background: linear-gradient(45deg, #45a049, #4CAF50);
+            transform: translateY(-2px);
+        }
+        .speak-button:disabled {
+            background: #cccccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .status {
+            margin-top: 10px;
+            font-size: 0.9rem;
+            color: #90EE90;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="title">🎤 LingoPad Text-to-Speech Test</h1>
+        
+        <div class="test-section">
+            <div class="language-title">Hindi (हिंदी)</div>
+            <div class="text-display">नमस्ते, आप कैसे हैं?</div>
+            <div class="pronunciation">[NAMASTE AP KAISE HE]</div>
+            <button class="speak-button" onclick="testSpeech('नमस्ते, आप कैसे हैं?', 'hindi', 'hindi-btn')">
+                🔊 Speak Hindi
+            </button>
+            <div id="hindi-status" class="status"></div>
+        </div>
+
+        <div class="test-section">
+            <div class="language-title">Tamil (தமிழ்)</div>
+            <div class="text-display">வணக்கம், நீங்கள் எப்படி இருக்கிறீர்கள்?</div>
+            <div class="pronunciation">[VANAKAM NINGAL EPADI IRUKIRIRKAL]</div>
+            <button class="speak-button" onclick="testSpeech('வணக்கம், நீங்கள் எப்படி இருக்கிறீர்கள்?', 'tamil', 'tamil-btn')">
+                🔊 Speak Tamil
+            </button>
+            <div id="tamil-status" class="status"></div>
+        </div>
+
+        <div class="test-section">
+            <div class="language-title">Japanese (日本語)</div>
+            <div class="text-display">こんにちは、お元気ですか？</div>
+            <div class="pronunciation">[KONICHIWA OGENKI DESU KA]</div>
+            <button class="speak-button" onclick="testSpeech('こんにちは、お元気ですか？', 'japanese', 'japanese-btn')">
+                🔊 Speak Japanese
+            </button>
+            <div id="japanese-status" class="status"></div>
+        </div>
+
+        <div class="test-section">
+            <div class="language-title">Arabic (العربية)</div>
+            <div class="text-display">مرحبا، كيف حالك؟</div>
+            <div class="pronunciation">[MARHABA KEYF HALAK]</div>
+            <button class="speak-button" onclick="testSpeech('مرحبا، كيف حالك؟', 'arabic', 'arabic-btn')">
+                🔊 Speak Arabic
+            </button>
+            <div id="arabic-status" class="status"></div>
+        </div>
+
+        <div class="test-section">
+            <div class="language-title">Test Pronunciation Generation</div>
+            <input type="text" id="custom-text" placeholder="Enter text to translate and speak..." 
+                   style="width: 100%; padding: 10px; margin-bottom: 10px; border-radius: 10px; border: none;">
+            <select id="custom-language" style="width: 100%; padding: 10px; margin-bottom: 10px; border-radius: 10px; border: none;">
+                <option value="hindi">Hindi</option>
+                <option value="tamil">Tamil</option>
+                <option value="japanese">Japanese</option>
+                <option value="arabic">Arabic</option>
+                <option value="chinese">Chinese</option>
+                <option value="korean">Korean</option>
+            </select>
+            <button class="speak-button" onclick="testCustomText()">
+                🎯 Translate & Speak Custom Text
+            </button>
+            <div id="custom-result" class="status"></div>
+        </div>
+    </div>
+
+    <script>
+        async function testSpeech(text, language, buttonId) {
+            const button = document.querySelector(`[onclick*="${buttonId}"]`);
+            const statusDiv = document.getElementById(language + '-status');
+            
+            try {
+                button.disabled = true;
+                button.textContent = '🔄 Processing...';
+                statusDiv.textContent = 'Preparing speech...';
+                
+                // Get pronunciation from server
+                const response = await fetch('http://localhost:3000/speak-pronunciation', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        text: text,
+                        targetLanguage: language
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.status === 'success') {
+                    statusDiv.textContent = `Speaking: ${result.data.speechText}`;
+                    
+                    // Use browser's speech synthesis
+                    const utterance = new SpeechSynthesisUtterance(result.data.speechText);
+                    utterance.rate = 0.8;
+                    utterance.pitch = 1;
+                    utterance.volume = 1;
+                    
+                    // Try to find appropriate voice
+                    const voices = speechSynthesis.getVoices();
+                    const languageMap = {
+                        'hindi': 'hi',
+                        'tamil': 'ta',
+                        'japanese': 'ja',
+                        'arabic': 'ar',
+                        'chinese': 'zh',
+                        'korean': 'ko'
+                    };
+                    
+                    const targetVoice = voices.find(voice => 
+                        voice.lang.toLowerCase().includes(languageMap[language]) ||
+                        voice.name.toLowerCase().includes(language)
+                    );
+                    
+                    if (targetVoice) {
+                        utterance.voice = targetVoice;
+                        statusDiv.textContent += ` (Using voice: ${targetVoice.name})`;
+                    } else {
+                        statusDiv.textContent += ' (Using default voice)';
+                    }
+                    
+                    utterance.onend = () => {
+                        button.disabled = false;
+                        button.textContent = `🔊 Speak ${language.charAt(0).toUpperCase() + language.slice(1)}`;
+                        statusDiv.textContent = `✅ Speech completed for: ${result.data.speechText}`;
+                    };
+                    
+                    utterance.onerror = (error) => {
+                        button.disabled = false;
+                        button.textContent = `🔊 Speak ${language.charAt(0).toUpperCase() + language.slice(1)}`;
+                        statusDiv.textContent = `❌ Speech error: ${error.error}`;
+                    };
+                    
+                    speechSynthesis.speak(utterance);
+                } else {
+                    throw new Error(result.message);
+                }
+                
+            } catch (error) {
+                button.disabled = false;
+                button.textContent = `🔊 Speak ${language.charAt(0).toUpperCase() + language.slice(1)}`;
+                statusDiv.textContent = `❌ Error: ${error.message}`;
+            }
+        }
+
+        async function testCustomText() {
+            const text = document.getElementById('custom-text').value;
+            const language = document.getElementById('custom-language').value;
+            const resultDiv = document.getElementById('custom-result');
+            
+            if (!text.trim()) {
+                resultDiv.textContent = '❌ Please enter some text';
+                return;
+            }
+            
+            try {
+                resultDiv.textContent = '🔄 Processing...';
+                
+                // First translate the text
+                const translateResponse = await fetch('http://localhost:3000/get-started', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        inputText: text,
+                        targetLanguage: language,
+                        translationMethod: 'huggingface'
+                    })
+                });
+                
+                const translateResult = await translateResponse.json();
+                
+                if (translateResult.status === 'success') {
+                    const translatedText = translateResult.data.translatedText;
+                    const pronunciation = translateResult.data.pronunciation;
+                    
+                    resultDiv.innerHTML = `
+                        <div><strong>Original:</strong> ${text}</div>
+                        <div><strong>Translated:</strong> ${translatedText}</div>
+                        <div><strong>Pronunciation:</strong> ${pronunciation}</div>
+                    `;
+                    
+                    // Now speak the pronunciation
+                    await testSpeech(translatedText, language, 'custom');
+                    
+                } else {
+                    throw new Error(translateResult.message);
+                }
+                
+            } catch (error) {
+                resultDiv.textContent = `❌ Error: ${error.message}`;
+            }
+        }
+
+        // Load voices when page loads
+        window.addEventListener('load', () => {
+            speechSynthesis.getVoices();
+            
+            // List available voices
+            setTimeout(() => {
+                const voices = speechSynthesis.getVoices();
+                console.log('Available voices:', voices.map(v => `${v.name} (${v.lang})`));
+            }, 1000);
+        });
+    </script>
+</body>
+</html>

@@ -7,15 +7,26 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "mobile:sync": "npx cap sync android",
+    "mobile:open": "npx cap open android",
+    "mobile:build": "npm run build && npx cap sync android",
+    "mobile:dev": "npm run build && npx cap copy android && npx cap open android"
   },
   "dependencies": {
+    "@capacitor/android": "^7.4.2",
+    "@capacitor/cli": "^7.4.2",
+    "@capacitor/core": "^7.4.2",
+    "@capacitor/splash-screen": "^7.0.2",
+    "@capacitor/status-bar": "^7.0.2",
     "@material-tailwind/html": "^3.0.0-beta.7",
     "@tailwindcss/vite": "^4.1.11",
+    "animejs": "^4.1.2",
     "express": "^5.1.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
-    "react-router-dom": "^7.6.3"
+    "react-router-dom": "^7.6.3",
+    "transliteration": "^2.3.5"
   },
   "devDependencies": {
     "@eslint/js": "^9.29.0",
