@@ -1,10 +1,13 @@
-// API Configuration
+// src/config.js
+
+const isLocal =
+  window.location.hostname === "localhost" ||
+  window.location.hostname === "127.0.0.1";
+
 const config = {
-  // Use localhost for development - backend is running on localhost:3001
-  API_BASE_URL: 'http://localhost:3001',
-  
-  // Alternative network IP for mobile devices on the same network
-  NETWORK_URL: 'http://192.168.31.14:3001'
+  // Local: hit backend directly (dev)
+  // Production (EC2): go through Nginx reverse proxy
+  API_BASE_URL: isLocal ? "http://localhost:3001" : "/api",
 };
 
 export default config;
